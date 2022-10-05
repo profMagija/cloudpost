@@ -1,0 +1,5 @@
+components:
+  - type: function
+    name: test_function
+    files:
+      - ["src/test_function/*", "."]
