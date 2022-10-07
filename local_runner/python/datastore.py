@@ -2,6 +2,7 @@
 # Cloud Datastore
 # =========================================
 
+from datetime import datetime, timedelta
 import os
 import uuid
 import requests
@@ -19,24 +20,37 @@ def _validate(ent: dict):
 
 def _list_all(namespace, kind):
     namespace = namespace or "$default"
-    return requests.get(
-        LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}"
-    ).json()
+
+    r = requests.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}")
+    r.raise_for_status()
+
+    return r.json()
 
 
 def _get_single(namespace, kind, key):
     namespace = namespace or "$default"
-    return requests.get(
+
+    print("start", datetime.now().isoformat())
+
+    r = requests.get(
         LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}"
-    ).json()
+    )
+    r.raise_for_status()
+
+    print(" end ", datetime.now().isoformat())
+
+    return r.json()
 
 
 def _put_single(namespace, kind, key, ent):
     namespace = namespace or "$default"
     _validate(ent)
-    return requests.put(
+    r = requests.put(
         LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}", json=ent
-    ).json()
+    )
+    r.raise_for_status()
+
+    return r.json()
 
 
 def _delete_single(namespace, kind, key):

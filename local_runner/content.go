@@ -9,7 +9,7 @@ import (
 
 func _emit_data(rootPath string, pathAndData ...any) error {
 	for i := 0; i < len(pathAndData); i += 2 {
-		err := os.WriteFile(filepath.Join(rootPath, pathAndData[i].(string)), pathAndData[i+1].([]byte), 0)
+		err := os.WriteFile(filepath.Join(rootPath, pathAndData[i].(string)), pathAndData[i+1].([]byte), 0755)
 		if err != nil {
 			return err
 		}
@@ -53,7 +53,7 @@ var python_runner_func string
 func emit_python_function_entry(dstPath, entry, port string) error {
 	p := strings.ReplaceAll(python_runner_func, "__ENTRY__", entry)
 	p = strings.ReplaceAll(p, "__PORT__", port)
-	return os.WriteFile(dstPath, []byte(p), 0)
+	return os.WriteFile(dstPath, []byte(p), 0755)
 }
 
 //go:embed runners/py_container_runner.py
@@ -62,5 +62,5 @@ var python_runner_container string
 func emit_python_container_entry(dstPath, entry, port string) error {
 	p := strings.ReplaceAll(python_runner_container, "__ENTRY__", entry)
 	p = strings.ReplaceAll(p, "__PORT__", port)
-	return os.WriteFile(dstPath, []byte(p), 0)
+	return os.WriteFile(dstPath, []byte(p), 0755)
 }

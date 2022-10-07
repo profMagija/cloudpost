@@ -17,6 +17,7 @@ import (
 var queues = make(map[string][]string)
 
 func register_queue_target(queue, url string) {
+	local_log_info("queue / subscribe : %s (%s)", queue, url)
 	queues[queue] = append(queues[queue], url)
 }
 
@@ -34,7 +35,7 @@ func internal_QueuePublish(w http.ResponseWriter, r *http.Request) {
 	realData = append(realData, []byte(base64.StdEncoding.EncodeToString(data))...)
 	realData = append(realData, []byte(`"}}`)...)
 
-	log.Printf(" publishing to queue %s: %s", name, string(realData))
+	local_log_info("queue / publish : %s", name)
 
 	for _, dest := range queues[name] {
 		go func(dest string) {
@@ -117,7 +118,7 @@ func internal_DatastoreListNamespace(w http.ResponseWriter, r *http.Request) {
 	namespace := vars["namespace"]
 	kind := vars["kind"]
 
-	fmt.Printf(" [\x1b[33m~\x1b[m] datastore / list : %s/%s\n", namespace, kind)
+	local_log_info("datastore / list : %s/%s", namespace, kind)
 
 	ns := datastore[namespace]
 	result := make([]any, 0)
@@ -135,6 +136,7 @@ func internal_DatastoreListNamespace(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("content-type", "application/json")
 	w.Header().Add("content-length", strconv.Itoa(len(data)))
+	w.WriteHeader(200)
 	w.Write(data)
 }
 
@@ -144,7 +146,8 @@ func internal_DatastoreEntity(w http.ResponseWriter, r *http.Request) {
 	kind := vars["kind"]
 	key := datastore_make_key(vars["key"])
 
-	fmt.Printf(" [\x1b[33m~\x1b[m] datastore / %s : %s/%s/%s\n", strings.ToLower(r.Method), namespace, kind, key)
+	local_log_info("[start] datastore / %s : %s/%s/%v", strings.ToLower(r.Method), namespace, kind, key)
+	defer local_log_info("[ end ] datastore / %s : %s/%s/%v", strings.ToLower(r.Method), namespace, kind, key)
 
 	switch r.Method {
 	case http.MethodGet:
@@ -157,6 +160,7 @@ func internal_DatastoreEntity(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Add("content-type", "application/json")
 		w.Header().Add("content-length", strconv.Itoa(len(data)))
+		w.WriteHeader(200)
 		w.Write(data)
 		return
 	case http.MethodPut:
@@ -182,6 +186,7 @@ func internal_DatastoreEntity(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Add("content-type", "application/json")
 		w.Header().Add("content-length", strconv.Itoa(len(dataResp)))
+		w.WriteHeader(200)
 		w.Write(dataResp)
 		return
 	case http.MethodDelete:
@@ -200,6 +205,8 @@ var storage = make(map[string]map[string]storageObject)
 
 func internal_StorageListBucket(w http.ResponseWriter, r *http.Request) {
 	bucket := mux.Vars(r)["bucket"]
+
+	local_log_info("storage / list : %s", bucket)
 
 	res := make([]string, 0, len(storage[bucket]))
 	for k := range storage[bucket] {
@@ -226,6 +233,8 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "not found", 404)
 		return
 	}
+
+	local_log_info("storage / %s : %s/%s", strings.ToLower(r.Method), bucket, path)
 
 	switch r.Method {
 	case http.MethodGet:
@@ -264,10 +273,49 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type infoResponse struct {
+	Buckets   []string
+	Queues    map[string][]string
+	Datastore map[string][]string
+}
+
+func internal_Info(w http.ResponseWriter, r *http.Request) {
+	var resp infoResponse
+
+	for k := range storage {
+		resp.Buckets = append(resp.Buckets, k)
+	}
+
+	resp.Queues = queues
+	resp.Datastore = make(map[string][]string)
+
+	for namespace, ns := range datastore {
+		var r []string
+		for kind := range ns {
+			r = append(r, kind)
+		}
+		resp.Datastore[namespace] = r
+	}
+
+	data, err := json.Marshal(resp)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+
+	w.Header().Add("content-type", "application/json")
+	w.Header().Add("content-length", fmt.Sprint(len(data)))
+	w.WriteHeader(200)
+	w.Write(data)
+}
+
 func registerInternalHandlers(r *mux.Router) {
-	r.Path("/_internal/queue/{name}/publish").Methods("GET").HandlerFunc(internal_QueuePublish)
+	r.Path("/_internal/queue/{name}/publish").Methods("POST").HandlerFunc(internal_QueuePublish)
+
 	r.Path("/_internal/datastore/{namespace}/{kind}").Methods("GET").HandlerFunc(internal_DatastoreListNamespace)
-	r.Path("/_internal/datastore/{namespace}/{kind}/{key}").Methods("GET", "POST", "DELETE").HandlerFunc(internal_DatastoreEntity)
+	r.Path("/_internal/datastore/{namespace}/{kind}/{key}").Methods("GET", "PUT", "DELETE").HandlerFunc(internal_DatastoreEntity)
+
 	r.Path("/_internal/storage/{bucket}").Methods("GET").HandlerFunc(internal_StorageListBucket)
 	r.Path("/_internal/storage/{bucket}/{path:.*}").Methods("GET", "PUT", "DELETE").HandlerFunc(internal_StorageObject)
+
+	r.Path("/_internal/info").Methods("GET").HandlerFunc(internal_Info)
 }

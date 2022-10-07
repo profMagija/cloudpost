@@ -5,12 +5,15 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/mux"
 	"github.com/otiai10/copy"
 )
@@ -56,10 +59,11 @@ func Init(flock *config.Flock) {
 
 	go func() {
 		startWg.Wait()
-		fmt.Println(" [\x1b[32m*\x1b[m] all services starting")
+		local_log_success("all services starting")
 	}()
 
-	http.ListenAndServe("localhost:5000", r)
+	err = http.ListenAndServe("localhost:5000", r)
+	panic(err)
 }
 
 func _cp(src, dst string) error {
@@ -112,6 +116,109 @@ func _copyFiles(srcPath, dstPath, td string, sourceMap map[string]string) error 
 		sourceMap[dst] = srcPath
 	}
 	return nil
+}
+
+func removeDuplicateStr(strSlice []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range strSlice {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
+}
+
+func withReloader(name string, sourceMap map[string]string, setup func() error, starter func(interrupt chan error) (func() error, error)) error {
+	for {
+		var paths []string
+
+		err := setup()
+		if err != nil {
+			return err
+		}
+
+		for _, p := range sourceMap {
+			fi, err := os.Stat(p)
+			if err != nil {
+				return err
+			}
+
+			if fi.IsDir() {
+				filepath.WalkDir(p, func(path string, d fs.DirEntry, err error) error {
+					if err != nil {
+						return err
+					}
+
+					if d.Name() == "__pycache__" || d.Name() == ".git" {
+						return filepath.SkipDir
+					}
+
+					paths = append(paths, path)
+					return nil
+				})
+			} else {
+				paths = append(paths, p)
+			}
+		}
+
+		paths = removeDuplicateStr(paths)
+
+		interrupt := make(chan error, 1)
+
+		local_log_verbose("[%s] %v", name, paths)
+
+		if len(paths) == 0 {
+			_, err := starter(interrupt)
+			if err != nil {
+				return err
+			}
+		}
+
+		rw, err := fsnotify.NewWatcher()
+		if err != nil {
+			return err
+		}
+
+		for _, p := range paths {
+			err := rw.Add(p)
+			if err != nil {
+				return err
+			}
+		}
+
+		local_log_verbose("[%s] starting", name)
+
+		ender, err := starter(interrupt)
+		if err != nil {
+			return err
+		}
+
+		local_log_success("[%s] started", name)
+
+		select {
+		case e := <-rw.Events:
+			rw.Close()
+
+			local_log_verbose("[%s] hot reloading (%v)", name, e)
+			err := ender()
+			if err != nil {
+				return err
+			}
+			time.Sleep(100 * time.Millisecond)
+		case err := <-rw.Errors:
+			local_log_verbose("[%s] hot erroring (%v)", name, err)
+			ender()
+			rw.Close()
+			return err
+		case err := <-interrupt:
+			local_log_verbose("[%s] hot quitting (%v)", name, err)
+			rw.Close()
+			return err
+		}
+
+	}
 }
 
 var printerLock sync.Mutex

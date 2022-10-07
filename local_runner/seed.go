@@ -45,6 +45,4 @@ func do_seed(flock *config.Flock) {
 	if entities != 0 {
 		fmt.Printf(" [\x1b[32m*\x1b[m] seeded %d entities\n", entities)
 	}
-
-	println(fmt.Print(datastore))
 }

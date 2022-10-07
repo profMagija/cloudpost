@@ -25,7 +25,7 @@ type (
 		Files []FileSpec
 		Entry string
 
-		TriggerTopic string
+		TriggerTopic string `yaml:"triggerTopic"`
 	}
 
 	Container struct {
@@ -33,8 +33,8 @@ type (
 		Files []FileSpec
 		Entry string
 
-		TriggerTopic string
-		TriggerPath  string
+		TriggerTopic string `yaml:"triggerTopic"`
+		TriggerPath  string `yaml:"triggerPath"`
 	}
 
 	FileSpec struct {
@@ -45,6 +45,7 @@ type (
 
 const (
 	ComponentKind_Service ComponentKind = iota
+	ComponentKind_Container
 )
 
 func (s *Function) GetName() string {
@@ -60,7 +61,7 @@ func (s *Container) GetName() string {
 }
 
 func (s *Container) GetType() ComponentKind {
-	return ComponentKind_Service
+	return ComponentKind_Container
 }
 
 func _merge(def, override any) (any, error) {
