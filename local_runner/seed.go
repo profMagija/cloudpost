@@ -2,7 +2,6 @@ package localrunner
 
 import (
 	"cloudpost/config"
-	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,7 +10,7 @@ import (
 )
 
 type seedData struct {
-	Datastore map[string]map[string]map[any]map[string]any
+	Datastore map[string]map[string]map[string]map[string]any
 }
 
 func do_seed(flock *config.Flock) {
@@ -33,9 +32,6 @@ func do_seed(flock *config.Flock) {
 	for namespace, ns := range sd.Datastore {
 		for kind, kd := range ns {
 			for key, entity := range kd {
-				if sKey, ok := key.(string); ok {
-					key = datastore_make_key(sKey)
-				}
 				datastore_put_entity(namespace, kind, key, entity)
 				entities += 1
 			}
@@ -43,6 +39,6 @@ func do_seed(flock *config.Flock) {
 	}
 
 	if entities != 0 {
-		fmt.Printf(" [\x1b[32m*\x1b[m] seeded %d entities\n", entities)
+		local_log_success("seeded %d entities", entities)
 	}
 }

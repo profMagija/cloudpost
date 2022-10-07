@@ -34,6 +34,10 @@ var listCmd = &cobra.Command{
 					fmt.Printf("    Trigger Topic : %s\n", r.TriggerTopic)
 					fmt.Printf("    Trigger Path  : %s\n", r.TriggerPath)
 				}
+			case *config.Bucket:
+				fmt.Printf("  \x1b[32mBucket\x1b[m %s:\n", v.GetName())
+			default:
+				fmt.Printf("invalid flock component spec: unknown type %T\n", r)
 			}
 			fmt.Println()
 		}

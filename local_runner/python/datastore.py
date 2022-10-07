@@ -21,23 +21,15 @@ def _validate(ent: dict):
 
 def _list_all(namespace, kind):
     namespace = namespace or "$default"
-
     r = session.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}")
     r.raise_for_status()
-
     return r.json()
 
 
 def _get_single(namespace, kind, key):
     namespace = namespace or "$default"
-
-    print("start", int(datetime.now().timestamp() * 1000))
-
     r = session.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}")
     r.raise_for_status()
-
-    print(" end ", int(datetime.now().timestamp() * 1000))
-
     return r.json()
 
 
@@ -49,7 +41,6 @@ def _put_single(namespace, kind, key, ent):
         json=ent,
     )
     r.raise_for_status()
-
     return r.json()
 
 

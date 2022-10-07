@@ -2,6 +2,7 @@ package localrunner
 
 import (
 	"bytes"
+	"embed"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -58,7 +59,7 @@ func internal_QueuePublish(w http.ResponseWriter, r *http.Request) {
 
 // ---------------------------------------------
 
-var datastore = make(map[string]map[string]map[any]map[string]any)
+var datastore = make(map[string]map[string]map[string]map[string]any)
 
 func datastore_make_key(key string) any {
 	i, err := strconv.Atoi(key)
@@ -69,7 +70,7 @@ func datastore_make_key(key string) any {
 	}
 }
 
-func datastore_get_entity(namespace, kind string, key any) map[string]any {
+func datastore_get_entity(namespace, kind string, key string) map[string]any {
 	ns := datastore[namespace]
 	if ns != nil {
 		kd := ns[kind]
@@ -80,7 +81,7 @@ func datastore_get_entity(namespace, kind string, key any) map[string]any {
 	return nil
 }
 
-func datastore_delete_entity(namespace, kind string, key any) {
+func datastore_delete_entity(namespace, kind string, key string) {
 	ns := datastore[namespace]
 	if ns != nil {
 		kd := ns[kind]
@@ -90,20 +91,20 @@ func datastore_delete_entity(namespace, kind string, key any) {
 	}
 }
 
-func datastore_put_entity(namespace, kind string, key any, entity map[string]any) {
+func datastore_put_entity(namespace, kind, key string, entity map[string]any) {
 	ns := datastore[namespace]
 	if ns == nil {
-		ns = make(map[string]map[any]map[string]any)
+		ns = make(map[string]map[string]map[string]any)
 		datastore[namespace] = ns
 	}
 
 	kd := ns[kind]
 	if kd == nil {
-		kd = make(map[any]map[string]any)
+		kd = make(map[string]map[string]any)
 		ns[kind] = kd
 	}
 
-	entity["#key"] = key
+	entity["#key"] = datastore_make_key(key)
 	kd[key] = entity
 }
 
@@ -144,10 +145,7 @@ func internal_DatastoreEntity(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	namespace := vars["namespace"]
 	kind := vars["kind"]
-	key := datastore_make_key(vars["key"])
-
-	local_log_info("[start] datastore / %s : %s/%s/%v", strings.ToLower(r.Method), namespace, kind, key)
-	defer local_log_info("[ end ] datastore / %s : %s/%s/%v", strings.ToLower(r.Method), namespace, kind, key)
+	key := vars["key"]
 
 	switch r.Method {
 	case http.MethodGet:
@@ -216,6 +214,7 @@ func internal_StorageListBucket(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	w.Header().Add("content-type", "application/json")
@@ -254,7 +253,7 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		mimeType := "application/octet-stream"
+		mimeType := "text/plain"
 		if ct, ok := r.Header["Content-Type"]; ok {
 			mimeType = ct[0]
 		}
@@ -274,32 +273,33 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 }
 
 type infoResponse struct {
-	Buckets   []string
-	Queues    map[string][]string
-	Datastore map[string][]string
+	Storage    map[string][]string
+	Functions  []string
+	Containers []string
+	Queues     map[string][]string
+	Datastore  map[string]map[string]map[string]map[string]any
 }
 
 func internal_Info(w http.ResponseWriter, r *http.Request) {
 	var resp infoResponse
 
-	for k := range storage {
-		resp.Buckets = append(resp.Buckets, k)
+	resp.Storage = map[string][]string{}
+	for k, v := range storage {
+		resp.Storage[k] = []string{}
+		for p := range v {
+			resp.Storage[k] = append(resp.Storage[k], p)
+		}
 	}
 
 	resp.Queues = queues
-	resp.Datastore = make(map[string][]string)
-
-	for namespace, ns := range datastore {
-		var r []string
-		for kind := range ns {
-			r = append(r, kind)
-		}
-		resp.Datastore[namespace] = r
-	}
+	resp.Functions = components_Functions
+	resp.Containers = components_Containers
+	resp.Datastore = datastore
 
 	data, err := json.Marshal(resp)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
+		return
 	}
 
 	w.Header().Add("content-type", "application/json")
@@ -307,6 +307,9 @@ func internal_Info(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(200)
 	w.Write(data)
 }
+
+//go:embed ui
+var ui_fs embed.FS
 
 func registerInternalHandlers(r *mux.Router) {
 	r.Path("/_internal/queue/{name}/publish").Methods("POST").HandlerFunc(internal_QueuePublish)
@@ -318,4 +321,8 @@ func registerInternalHandlers(r *mux.Router) {
 	r.Path("/_internal/storage/{bucket}/{path:.*}").Methods("GET", "PUT", "DELETE").HandlerFunc(internal_StorageObject)
 
 	r.Path("/_internal/info").Methods("GET").HandlerFunc(internal_Info)
+
+	r.PathPrefix("/ui/").Handler(http.FileServer(http.FS(ui_fs)))
+
+	local_log_success("UI started at http://localhost:5000/ui/")
 }

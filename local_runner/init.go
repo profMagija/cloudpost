@@ -18,6 +18,9 @@ import (
 	"github.com/otiai10/copy"
 )
 
+var components_Functions []string
+var components_Containers []string
+
 func Init(flock *config.Flock) {
 	os.Setenv("GCP_PROJECT", "CP_TEST")
 	os.Setenv("GCLOUD_PROJECT", "CP_TEST")
@@ -46,10 +49,12 @@ func Init(flock *config.Flock) {
 		switch c := component.(type) {
 		case *config.Function:
 			startWg.Add(1)
+			components_Functions = append(components_Functions, c.Name)
 			go cloudfunction_run(flock, c, port, env, r, startWg)
 			port += 1
 		case *config.Container:
 			startWg.Add(1)
+			components_Containers = append(components_Containers, c.Name)
 			go container_create_app(flock, c, port, env, r, startWg)
 			port += 1
 		case *config.Bucket:
@@ -197,7 +202,7 @@ func withReloader(name string, sourceMap map[string]string, setup func() error, 
 			return err
 		}
 
-		local_log_success("[%s] started", name)
+		local_log_verbose("[%s] started", name)
 
 		select {
 		case e := <-rw.Events:

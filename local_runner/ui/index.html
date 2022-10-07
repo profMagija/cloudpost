@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <h1>Cloudpost Command & Control Center</h1>
+
+    Status: <span id="server-status">Loading...</span>
+
+    <h2>Functions</h2>
+
+    <ul id="function-status"></ul>
+
+    <textarea id="function-payload" cols="30" rows="10" placeholder="Payload"></textarea> <br>
+    <button onclick="send_function_request('event')">Send as Event</button>
+    <button onclick="send_function_request('pubsub')">Send as Queue message</button>
+    <pre id="function-response"></pre>
+
+    <h2>Containers</h2>
+
+    <ul id="container-status"></ul>
+
+    <select id="container-method">
+        <option value="GET" selected>GET</option>
+        <option value="POST">POST</option>
+        <option value="PUT">PUT</option>
+        <option value="DELETE">DELETE</option>
+    </select> /<input type="text" id="container-path"> <br>
+    <textarea id="container-payload" cols="30" rows="10" placeholder="Payload"></textarea> <br>
+    <button onclick="send_container_request()">Send</button>
+    <pre id="container-response"></pre>
+
+    <h2>Storage</h2>
+
+    <ul id="storage-status"></ul>
+
+    <h2>Datastore</h2>
+
+    <ul id="datastore-status"></ul>
+
+    <pre id="datastore-view"></pre>
+
+    <h2>Queues</h2>
+
+    <ul id="queue-status"></ul>
+
+    <textarea id="queue-payload" cols="30" rows="10" placeholder="Payload"></textarea> <br>
+    <button onclick="send_queue_request()">Trigger</button>
+    <pre id="queue-response"></pre>
+
+    <pre id="queue-message-history"></pre>
+
+    <script src="./index.js"></script>
+</body>
+
+</html>
