@@ -43,24 +43,24 @@ func (f *Flock) UnmarshalYAML(value *yaml.Node) error {
 			return fmt.Errorf("invalid flock component spec: %w", err)
 		}
 
+		add := func(res Component, component any) {
+			err = yaml_reEncode(component, res)
+			if err != nil {
+				panic(fmt.Errorf("invalid flock component spec: %w", err))
+			}
+			f.Components = append(f.Components, res)
+		}
+
 		for _, component := range components {
 			switch component["type"] {
 			case nil:
 				return fmt.Errorf("invalid flock component spec: must have type")
 			case "function":
-				res := new(Function)
-				err = yaml_reEncode(component, res)
-				if err != nil {
-					return fmt.Errorf("invalid flock component spec: %w", err)
-				}
-				f.Components = append(f.Components, res)
+				add(new(Function), component)
 			case "container":
-				res := new(Container)
-				err = yaml_reEncode(component, res)
-				if err != nil {
-					return fmt.Errorf("invalid flock component spec: %w", err)
-				}
-				f.Components = append(f.Components, res)
+				add(new(Container), component)
+			case "bucket":
+				add(new(Bucket), component)
 			default:
 				return fmt.Errorf("invalid flock component spec: unknown type '%v'", component["type"])
 			}

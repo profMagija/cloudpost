@@ -4,39 +4,42 @@
 
 import logging
 import os
-import requests
+from ._common import session
 
 LOCALRUNNER_ADDR = os.environ["LOCALRUNNER_ADDR"]
 
 
 def _get_single(bucket, path):
-    resp = requests.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}")
+    resp = session.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}")
     resp.raise_for_status()
     return resp.content
 
 
 def _get_exists(bucket, path):
-    resp = requests.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}")
+    resp = session.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}")
     return resp.status_code == 200
 
 
 def _put_single(bucket, path, data):
     # ? Most likely windows specific problem with decoding
     try:
-        requests.put(
+        r = session.put(
             LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}",
             data=data,
         )
     except UnicodeEncodeError:
         logging.info("Unicode encoding failed, trying latin-1...")
         data = data.encode("latin-1", "ignore").decode("latin-1", "ignore")
-        requests.put(
+        r = session.put(
             LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}/{path}", data=data
         )
+    r.raise_for_status()
 
 
 def _list_all(bucket):
-    return requests.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}").json()
+    r = session.get(LOCALRUNNER_ADDR + f"/_internal/storage/{bucket}")
+    r.raise_for_status()
+    return r.json()
 
 
 class CloudStorageClient:

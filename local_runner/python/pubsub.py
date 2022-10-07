@@ -4,7 +4,7 @@
 
 from base64 import b64encode
 import os
-import requests
+from ._common import session
 
 LOCALRUNNER_ADDR = os.environ["LOCALRUNNER_ADDR"]
 
@@ -18,7 +18,7 @@ class _Result:
 
 
 def _post_message(name, data):
-    r = requests.post(LOCALRUNNER_ADDR + f"/_internal/queue/{name}/publish", data=data)
+    r = session.post(LOCALRUNNER_ADDR + f"/_internal/queue/{name}/publish", data=data)
     r.raise_for_status()
 
 

@@ -80,7 +80,7 @@ func cloudfunction_run(flock *config.Flock, f *config.Function, port int, env ma
 		cmd.Stderr = &namedPrinter{color: port%10 + 30, name: f.Name}
 
 		envList := []string{
-			"LOCALRUNNER_ADDR=http://localhost:5000",
+			"LOCALRUNNER_ADDR=http://127.0.0.1:5000",
 			"FLASK_ENV=development",
 		}
 		envList = append(envList, os.Environ()...)

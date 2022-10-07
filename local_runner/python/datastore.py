@@ -5,7 +5,8 @@
 from datetime import datetime, timedelta
 import os
 import uuid
-import requests
+
+from ._common import session
 
 LOCALRUNNER_ADDR = os.environ["LOCALRUNNER_ADDR"]
 
@@ -21,7 +22,7 @@ def _validate(ent: dict):
 def _list_all(namespace, kind):
     namespace = namespace or "$default"
 
-    r = requests.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}")
+    r = session.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}")
     r.raise_for_status()
 
     return r.json()
@@ -30,14 +31,12 @@ def _list_all(namespace, kind):
 def _get_single(namespace, kind, key):
     namespace = namespace or "$default"
 
-    print("start", datetime.now().isoformat())
+    print("start", int(datetime.now().timestamp() * 1000))
 
-    r = requests.get(
-        LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}"
-    )
+    r = session.get(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}")
     r.raise_for_status()
 
-    print(" end ", datetime.now().isoformat())
+    print(" end ", int(datetime.now().timestamp() * 1000))
 
     return r.json()
 
@@ -45,8 +44,9 @@ def _get_single(namespace, kind, key):
 def _put_single(namespace, kind, key, ent):
     namespace = namespace or "$default"
     _validate(ent)
-    r = requests.put(
-        LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}", json=ent
+    r = session.put(
+        LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}",
+        json=ent,
     )
     r.raise_for_status()
 
@@ -55,7 +55,10 @@ def _put_single(namespace, kind, key, ent):
 
 def _delete_single(namespace, kind, key):
     namespace = namespace or "$default"
-    requests.delete(LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}")
+    r = session.delete(
+        LOCALRUNNER_ADDR + f"/_internal/datastore/{namespace}/{kind}/{key}"
+    )
+    r.raise_for_status()
 
 
 class DataStoreEntity(dict):

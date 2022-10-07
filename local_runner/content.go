@@ -21,6 +21,9 @@ func _emit_data(rootPath string, pathAndData ...any) error {
 //go:embed python/__init__.py
 var python_local_init_py []byte
 
+//go:embed python/_common.py
+var python_local_common_py []byte
+
 //go:embed python/datastore.py
 var python_local_datastore_py []byte
 
@@ -40,6 +43,7 @@ func emit_python_local(dstPath string) error {
 	}
 	return _emit_data(dstPath,
 		"__init__.py", python_local_init_py,
+		"_common.py", python_local_common_py,
 		"datastore.py", python_local_datastore_py,
 		"internal.py", python_local_internal_py,
 		"storage.py", python_local_storage_py,

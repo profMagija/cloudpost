@@ -37,6 +37,11 @@ type (
 		TriggerPath  string `yaml:"triggerPath"`
 	}
 
+	Bucket struct {
+		Name  string
+		Files []FileSpec
+	}
+
 	FileSpec struct {
 		Src string
 		Dst string
@@ -46,6 +51,7 @@ type (
 const (
 	ComponentKind_Service ComponentKind = iota
 	ComponentKind_Container
+	ComponentKind_Bucket
 )
 
 func (s *Function) GetName() string {
@@ -62,6 +68,14 @@ func (s *Container) GetName() string {
 
 func (s *Container) GetType() ComponentKind {
 	return ComponentKind_Container
+}
+
+func (s *Bucket) GetName() string {
+	return s.Name
+}
+
+func (s *Bucket) GetType() ComponentKind {
+	return ComponentKind_Bucket
 }
 
 func _merge(def, override any) (any, error) {
