@@ -8,7 +8,7 @@ import (
 	"os"
 	"path"
 
-	"cloudpost/config"
+	"github.com/profMagija/cloudpost/config"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"

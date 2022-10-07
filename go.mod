@@ -1,4 +1,4 @@
-module cloudpost
+module github.com/profMagija/cloudpost
 
 go 1.19
 

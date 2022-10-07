@@ -1,10 +1,11 @@
 package localrunner
 
 import (
-	"cloudpost/config"
 	"log"
 	"os"
 	"path/filepath"
+
+	"github.com/profMagija/cloudpost/config"
 
 	"gopkg.in/yaml.v3"
 )

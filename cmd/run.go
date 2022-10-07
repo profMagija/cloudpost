@@ -4,7 +4,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	localrunner "cloudpost/local_runner"
+	localrunner "github.com/profMagija/cloudpost/local_runner"
 
 	"github.com/spf13/cobra"
 )

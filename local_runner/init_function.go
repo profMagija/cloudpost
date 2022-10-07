@@ -1,7 +1,6 @@
 package localrunner
 
 import (
-	"cloudpost/config"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"sync"
+
+	"github.com/profMagija/cloudpost/config"
 
 	"github.com/gorilla/mux"
 )

@@ -1,7 +1,6 @@
 package localrunner
 
 import (
-	"cloudpost/config"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -12,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/profMagija/cloudpost/config"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/mux"

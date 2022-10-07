@@ -4,8 +4,9 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
-	"cloudpost/config"
 	"fmt"
+
+	"github.com/profMagija/cloudpost/config"
 
 	"github.com/spf13/cobra"
 )
