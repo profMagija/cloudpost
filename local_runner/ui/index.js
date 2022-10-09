@@ -38,6 +38,9 @@ async function send_function_request(endpoint) {
     const resp = await fetch(`/${curThing.function}/${endpoint}`, {
         body: payload,
         method: "post",
+        headers: {
+            "Content-Type": "application/json",
+        }
     })
     $("function-response").innerText = await resp.text()
 }

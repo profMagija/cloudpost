@@ -3,3 +3,9 @@ components:
     name: test_function
     files:
       - ["src/test_function/*", "."]
+
+config:
+  prod:
+    env:ENV_NAME: prod
+  local:
+    env:ENV_NAME: local
