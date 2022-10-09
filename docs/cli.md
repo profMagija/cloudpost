@@ -13,3 +13,5 @@ To start the development server, run `cloudpost run`. This will start up all the
     - `* /<container_name>/**`: send a request to the container. The path is container name is removed from the path before forwarding the request.
 
 Aditionally, a web interface is hosted on `/ui/`.
+
+The LocalRunner always uses the configuration `local` for the flock.
