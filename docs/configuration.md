@@ -4,7 +4,7 @@ Cloudpost project is configured using a `cloudpost.yml` file in the project root
 
 ## Configuration file
 
-The configuration file is a simple single-document YAML file called `cloudpost.yml` in the root of the project. A simple example can be found in [the example folder](/example/cloudpost.yml). It contains two keys:
+The configuration file is a simple single-document YAML file called `cloudpost.yml` in the root of the project. A simple example can be found in [the example folder](https://github.com/profMagija/cloudpost/blob/master/example/cloudpost.yml). It contains two keys:
 
 - `components`, a list of all the components of the flock; and
 - `config` representing the per-stage configuration of the flock.
