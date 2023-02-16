@@ -37,7 +37,7 @@ var python_local_storage_py []byte
 var python_local_pubsub_py []byte
 
 func emit_python_local(dstPath string) error {
-	err := os.MkdirAll(dstPath, 0)
+	err := os.MkdirAll(dstPath, 0755)
 	if err != nil {
 		return err
 	}
