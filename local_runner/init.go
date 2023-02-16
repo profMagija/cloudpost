@@ -75,7 +75,7 @@ func Init(flock *config.Flock) {
 }
 
 func _cp(src, dst string) error {
-	err := os.MkdirAll(filepath.Dir(dst), 0)
+	err := os.MkdirAll(filepath.Dir(dst), 0755)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func _cp(src, dst string) error {
 	}
 
 	if err == nil && info.IsDir() {
-		err = os.MkdirAll(dst, 0)
+		err = os.MkdirAll(dst, 0755)
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func _copyFiles(srcPath, dstPath, td string, sourceMap map[string]string) error 
 		}
 		for _, sp := range files {
 			dst := filepath.Join(td, dstPath)
-			err := os.MkdirAll(filepath.Dir(dst), 0)
+			err := os.MkdirAll(filepath.Dir(dst), 0755)
 			if err != nil {
 				return err
 			}

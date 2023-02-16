@@ -11,18 +11,26 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gorilla/mux"
 )
 
+var queueLock = sync.RWMutex{}
 var queues = make(map[string][]string)
 
 func register_queue_target(queue, url string) {
 	local_log_info("queue / subscribe : %s (%s)", queue, url)
+	queueLock.Lock()
+	defer queueLock.Unlock()
+
 	queues[queue] = append(queues[queue], url)
 }
 
 func internal_QueuePublish(w http.ResponseWriter, r *http.Request) {
+	queueLock.Lock()
+	defer queueLock.Unlock()
+
 	data, err := io.ReadAll(r.Body)
 
 	name := mux.Vars(r)["name"]
