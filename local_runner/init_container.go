@@ -83,7 +83,7 @@ func container_create_app(flock *config.Flock, f *config.Container, port int, en
 
 		envList := []string{
 			"LOCALRUNNER_ADDR=http://127.0.0.1:5000",
-			"FLASK_ENV=development",
+			"FLASK_DEBUG=1",
 		}
 		envList = append(envList, os.Environ()...)
 		for k, v := range env {
