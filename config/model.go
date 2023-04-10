@@ -38,13 +38,20 @@ type (
 	}
 
 	Bucket struct {
-		Name  string
-		Files []FileSpec
+		Name     string           `yaml:"name"`
+		Contents []BucketFileSpec `yaml:"contents"`
 	}
 
 	FileSpec struct {
 		Src string
 		Dst string
+	}
+
+	// TODO: unify this with bucket file spec
+	BucketFileSpec struct {
+		Src  string `yaml:"src"`
+		Dst  string `yaml:"dst"`
+		Type string `yaml:"mime_type"`
 	}
 )
 

@@ -58,6 +58,24 @@ Example:
 
 Creates a storage bucket.
 
+- `contents`: specifies the initial bucket contents
+  - `src`: the source file path, relative to flock root
+  - `dst`: the destination object path in the bucket
+  - `type`: MIME type of the file (if omitted, defaults to `text/plain`)
+
+Example:
+
+```yml
+- type: bucket
+  name: example_bucket
+  contents:
+  - src: path/to/file.js
+    dst: path/to/object.js
+    type: application/javascript
+```
+
+Example
+
 ## Filespec format
 
 Cloudpost uses *filespec* for specifying which files should be included in each deployment, and where they should be placed in the deployed artifact. A filespec is a list of entries. Each entry is one of the following:

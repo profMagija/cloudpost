@@ -59,7 +59,9 @@ func Init(flock *config.Flock) {
 			go container_create_app(flock, c, port, env, r, startWg)
 			port += 1
 		case *config.Bucket:
-			storage[c.Name] = make(map[string]storageObject)
+			s := make(map[string]*storageObject)
+			storage[c.Name] = s
+			init_bucket(flock, c, s)
 		}
 	}
 

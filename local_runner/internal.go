@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -203,11 +204,12 @@ func internal_DatastoreEntity(w http.ResponseWriter, r *http.Request) {
 }
 
 type storageObject struct {
-	mimeType string
-	data     []byte
+	mimeType   string
+	data       []byte
+	onDiskPath *string
 }
 
-var storage = make(map[string]map[string]storageObject)
+var storage = make(map[string]map[string]*storageObject)
 
 func internal_StorageListBucket(w http.ResponseWriter, r *http.Request) {
 	bucket := mux.Vars(r)["bucket"]
@@ -250,9 +252,29 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "not found", 404)
 			return
 		}
-		w.Header().Add("content-type", obj.mimeType)
-		w.Header().Add("content-length", strconv.Itoa(len(obj.data)))
-		w.Write(obj.data)
+
+		if obj.onDiskPath != nil {
+			file, err := os.Open(*obj.onDiskPath)
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+				return
+			}
+			st, err := file.Stat()
+			if err != nil {
+				http.Error(w, err.Error(), 500)
+			}
+
+			w.Header().Add("content-type", fmt.Sprint(st.Size()))
+			w.Header().Add("content-type", obj.mimeType)
+			_, err = io.Copy(w, file)
+			if err != nil {
+				local_log_error("error sending file: %v", err)
+			}
+		} else {
+			w.Header().Add("content-type", obj.mimeType)
+			w.Header().Add("content-length", strconv.Itoa(len(obj.data)))
+			w.Write(obj.data)
+		}
 		return
 	case http.MethodPut:
 		data, err := io.ReadAll(r.Body)
@@ -266,7 +288,7 @@ func internal_StorageObject(w http.ResponseWriter, r *http.Request) {
 			mimeType = ct[0]
 		}
 
-		bkt[path] = storageObject{
+		bkt[path] = &storageObject{
 			mimeType: mimeType,
 			data:     data,
 		}

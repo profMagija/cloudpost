@@ -128,11 +128,11 @@ async function load_data() {
         const data = await resp.json();
         $("server-status").innerText = "Online";
 
-        init_thing(data.Functions, 'function');
-        init_thing(data.Containers, 'container');
-        init_thing(Object.keys(data.Queues), 'queue');
-        init_datastore(data.Datastore)
-        init_storage(data.Storage)
+        init_thing(data.Functions || [], 'function');
+        init_thing(data.Containers || [], 'container');
+        init_thing(Object.keys(data.Queues || {}), 'queue');
+        init_datastore(data.Datastore || {})
+        init_storage(data.Storage || {})
 
         setTimeout(load_data, 3000);
     } catch (e) {
