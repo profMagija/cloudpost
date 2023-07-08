@@ -1,7 +1,9 @@
 package localrunner
 
 import (
+	"bytes"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -252,7 +254,14 @@ func (p *namedPrinter) Write(data []byte) (n int, err error) {
 			if len(p.name) > 20 {
 				p.name = p.name[:17] + "..."
 			}
-			fmt.Printf("\x1b[%dm%20s | %s\x1b[m\n", p.color, p.name, p.buf[lastI:i])
+			text := [][]byte{p.buf[lastI:i]}
+			if bytes.HasPrefix(text[0], []byte("{\"")) {
+				text = p.formatJson(text[0])
+			}
+
+			for _, line := range text {
+				fmt.Printf("\x1b[%dm%20s | %s\x1b[m\n", p.color, p.name, line)
+			}
 			lastI = i + 1
 			i++
 		}
@@ -260,4 +269,49 @@ func (p *namedPrinter) Write(data []byte) (n int, err error) {
 
 	p.buf = p.buf[lastI:]
 	return len(data), nil
+}
+
+func (p *namedPrinter) formatJson(origText []byte) [][]byte {
+	var log structLog
+	err := json.Unmarshal(origText, &log)
+	if err != nil {
+		return [][]byte{origText}
+	}
+
+	str := fmt.Sprintf("%-7s %s", optstr(log.LevelName, "DEFAULT"), optstr(log.Message, ""))
+
+	if log.File != nil && log.Function != nil {
+		str = fmt.Sprintf("[%s:%s] %s", optstr(log.File, ""), optstr(log.Function, ""), str)
+	}
+
+	if log.Fields != nil && len(log.Fields) > 0 {
+		for k, v := range log.Fields {
+			str += fmt.Sprintf("\n    %s = %s", k, v)
+		}
+	}
+
+	var res [][]byte
+
+	for _, line := range strings.Split(str, "\n") {
+		res = append(res, []byte(line))
+	}
+
+	return res
+}
+
+func optstr(opt *string, def string) string {
+	if opt == nil {
+		return def
+	}
+	return *opt
+}
+
+type structLog struct {
+	AscTime   *string        `json:"asctime"`
+	LevelName *string        `json:"levelname"`
+	File      *string        `json:"file"`
+	Linenum   *string        `json:"lineno"`
+	Function  *string        `json:"function"`
+	Message   *string        `json:"message"`
+	Fields    map[string]any `json:"fields"`
 }

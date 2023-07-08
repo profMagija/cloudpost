@@ -1,3 +1,4 @@
+import json
 import os
 import cloud
 
@@ -9,4 +10,13 @@ def main(message, context):
     return "hello from " + ENV_NAME, 200
 
 
-print("initialized", ENV_NAME)
+print(
+    json.dumps(
+        {
+            "message": "initialized",
+            "fields": {
+                "ENV_NAME": ENV_NAME,
+            },
+        }
+    )
+)
