@@ -278,16 +278,26 @@ func (p *namedPrinter) formatJson(origText []byte) [][]byte {
 		return [][]byte{origText}
 	}
 
-	str := fmt.Sprintf("%-7s %s", optstr(log.LevelName, "DEFAULT"), optstr(log.Message, ""))
+	str := fmt.Sprintf("%-7s %s", optstr(log.Severity, "DEFAULT"), optstr(log.Message, ""))
 
-	if log.File != nil && log.Function != nil {
-		str = fmt.Sprintf("[%s:%s] %s", optstr(log.File, ""), optstr(log.Function, ""), str)
+	if log.SourceLocation != nil {
+		pathstr := optstr(log.SourceLocation.File, "") + ":" + optstr(log.SourceLocation.Function, "")
+
+		str = fmt.Sprintf("%-20s | %s", pathstr, str)
 	}
 
-	if log.Fields != nil && len(log.Fields) > 0 {
+	if log.Fields != nil {
 		for k, v := range log.Fields {
-			str += fmt.Sprintf("\n    %s = %s", k, v)
+			vSer, err := json.MarshalIndent(v, "        ", "  ")
+			if err != nil {
+				vSer = []byte(fmt.Sprintf("%v", v))
+			}
+			str += fmt.Sprintf("\n    %s = %s", k, string(vSer))
 		}
+	}
+
+	if log.Exception != nil {
+		str += "\n" + *log.Exception
 	}
 
 	var res [][]byte
@@ -307,11 +317,12 @@ func optstr(opt *string, def string) string {
 }
 
 type structLog struct {
-	AscTime   *string        `json:"asctime"`
-	LevelName *string        `json:"levelname"`
-	File      *string        `json:"file"`
-	Linenum   *string        `json:"lineno"`
-	Function  *string        `json:"function"`
+	Severity       *string `json:"severity"`
+	SourceLocation *struct {
+		File     *string `json:"file"`
+		Function *string `json:"function"`
+	} `json:"logging.googleapis.com/sourceLocation"`
 	Message   *string        `json:"message"`
 	Fields    map[string]any `json:"fields"`
+	Exception *string        `json:"exception"`
 }

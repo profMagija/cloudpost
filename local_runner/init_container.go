@@ -109,6 +109,5 @@ func container_create_app(flock *config.Flock, f *config.Container, port int, en
 
 	if err != nil {
 		local_log_error("[%s] error running process: %v", f.Name, err)
-		return
 	}
 }
