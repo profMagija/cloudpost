@@ -1,13 +1,18 @@
-try:
-    from __ENTRY__ import app
-except ImportError:
-    from __ENTRY__ import create_app
+if __IS_NATIVE__:
+    from __ENTRY__ import main
 
-    app = create_app()
+    main()
+else:
+    try:
+        from __ENTRY__ import app
+    except ImportError:
+        from __ENTRY__ import create_app
 
-import logging
-from werkzeug.serving import run_simple
+        app = create_app()
 
-logging.getLogger("werkzeug").setLevel(logging.ERROR)
+    import logging
+    from werkzeug.serving import run_simple
 
-run_simple("localhost", __PORT__, app)
+    logging.getLogger("werkzeug").setLevel(logging.ERROR)
+
+    run_simple("localhost", __PORT__, app)

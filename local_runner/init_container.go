@@ -69,7 +69,7 @@ func container_create_app(flock *config.Flock, f *config.Container, port int, en
 			return err
 		}
 
-		err = emit_python_container_entry(filepath.Join(td, "__entry.py"), f.Entry, strconv.Itoa(port))
+		err = emit_python_container_entry(filepath.Join(td, "__entry.py"), f.Entry, strconv.Itoa(port), f.IsNative)
 		if err != nil {
 			return err
 		}

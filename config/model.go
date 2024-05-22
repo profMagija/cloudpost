@@ -35,6 +35,7 @@ type (
 
 		TriggerTopic string `yaml:"triggerTopic"`
 		TriggerPath  string `yaml:"triggerPath"`
+		IsNative     bool   `yaml:"isNative"`
 	}
 
 	Bucket struct {

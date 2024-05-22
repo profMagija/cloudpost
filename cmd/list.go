@@ -31,6 +31,9 @@ var listCmd = &cobra.Command{
 			case *config.Container:
 				fmt.Printf("  \x1b[32mContainer\x1b[m %s:\n", v.GetName())
 				fmt.Printf("    Entry: %s\n", r.Entry)
+				if r.IsNative {
+					fmt.Printf("    Native: True\n")
+				}
 				if r.TriggerTopic != "" {
 					fmt.Printf("    Trigger Topic : %s\n", r.TriggerTopic)
 					fmt.Printf("    Trigger Path  : %s\n", r.TriggerPath)

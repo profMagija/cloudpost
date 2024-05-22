@@ -1,0 +1,5 @@
+FROM python:3.9-slim
+
+COPY ./src/test_svc/* .
+
+CMD waitress-serve --port=8080 --call test_svc.main:create_app
