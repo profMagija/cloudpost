@@ -104,7 +104,8 @@ class DataStoreQuery:
 
     def _make_orderer(self):
         return lambda ent: tuple(
-            (-1 if o[0] == "-" else 1) * getattr(ent, o.strip("+-")) for o in self.order
+            (-1 if o[0] == "-" else 1) * getattr(ent, o.strip("+-"), 0)
+            for o in self.order
         )
 
     def add_filter(self, field, op, value):
