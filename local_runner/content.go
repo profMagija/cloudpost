@@ -63,8 +63,13 @@ func emit_python_function_entry(dstPath, entry, port string) error {
 //go:embed runners/py_container_runner.py
 var python_runner_container string
 
-func emit_python_container_entry(dstPath, entry, port string) error {
+func emit_python_container_entry(dstPath, entry, port string, isNative bool) error {
 	p := strings.ReplaceAll(python_runner_container, "__ENTRY__", entry)
 	p = strings.ReplaceAll(p, "__PORT__", port)
+	isNativeStr := "False"
+	if isNative {
+		isNativeStr = "True"
+	}
+	p = strings.ReplaceAll(p, "__IS_NATIVE__", isNativeStr)
 	return os.WriteFile(dstPath, []byte(p), 0755)
 }

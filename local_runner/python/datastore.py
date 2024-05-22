@@ -75,8 +75,10 @@ class DataStoreQuery:
         self.namespace = namespace
         self.kind = kind
         self.filters = []
+        #! ORDER WORKS ONLY FOR NUMERIC FIELDS
+        self.order = []
 
-    def fetch(self):
+    def fetch(self, limit=None, offset=None):
         kind = _list_all(self.namespace, self.kind)
 
         result = []
@@ -89,7 +91,22 @@ class DataStoreQuery:
             if ok:
                 result.append(DataStoreEntity.create(self.kind, ent))
 
+        if self.order:
+            result.sort(key=self._make_orderer())
+
+        if offset is not None:
+            result = result[offset:]
+
+        if limit is not None:
+            result = result[:limit]
+
         return result
+
+    def _make_orderer(self):
+        return lambda ent: tuple(
+            (-1 if o[0] == "-" else 1) * getattr(ent, o.strip("+-"), 0)
+            for o in self.order
+        )
 
     def add_filter(self, field, op, value):
         if op not in ("=",):

@@ -3,6 +3,12 @@ components:
     name: test_function
     files:
       - ["src/test_function/*", "."]
+  - type: container
+    name: test_svc
+    entry: "main"
+    isNative: true
+    files:
+      - ["src/test_svc/*", "."]
 
 config:
   prod:
