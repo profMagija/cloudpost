@@ -67,7 +67,7 @@ class DataStoreEntity(dict):
 
 
 class DataStoreQuery:
-    def __init__(self, namespace, kind, limit=None, offset=None):
+    def __init__(self, namespace, kind):
         if not isinstance(namespace, str):
             raise TypeError(type(namespace))
         if not isinstance(kind, str):
@@ -75,12 +75,10 @@ class DataStoreQuery:
         self.namespace = namespace
         self.kind = kind
         self.filters = []
-        self.limit = limit
-        self.offset = offset
         #! ORDER WORKS ONLY FOR NUMERIC FIELDS
         self.order = []
 
-    def fetch(self):
+    def fetch(self, limit=None, offset=None):
         kind = _list_all(self.namespace, self.kind)
 
         result = []
@@ -96,11 +94,11 @@ class DataStoreQuery:
         if self.order:
             result.sort(key=self._make_orderer())
 
-        if self.offset is not None:
-            result = result[self.offset :]
+        if offset is not None:
+            result = result[offset:]
 
-        if self.limit is not None:
-            result = result[: self.limit]
+        if limit is not None:
+            result = result[:limit]
 
         return result
 
