@@ -101,12 +101,22 @@ class DataStoreQuery:
             result = result[:limit]
 
         return result
+    
+    def cmp(self, a, b):
+        return (a > b) - (a < b)
 
     def _make_orderer(self):
-        return lambda ent: tuple(
-            (-1 if o[0] == "-" else 1) * getattr(ent, o.strip("+-"), 0)
-            for o in self.order
-        )
+        def order_func(item):
+            sort_keys = []
+            for order_key in self.order:
+                desc = order_key.startswith('-')
+                key = order_key[1:] if desc else order_key
+                value = item.get(key, 0)  # Assuming numerical values, defaulting to 0
+                if desc:
+                    value = -value  # Invert value for descending order
+                sort_keys.append(value)
+            return tuple(sort_keys)
+        return order_func
 
     def add_filter(self, field, op, value):
         if op not in ("=",):
