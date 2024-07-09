@@ -101,9 +101,7 @@ class DataStoreQuery:
             result = result[:limit]
 
         return result
-    
-    def cmp(self, a, b):
-        return (a > b) - (a < b)
+
 
     def _make_orderer(self):
         def order_func(item):
