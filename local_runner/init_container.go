@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"regexp"
 
 	"github.com/profMagija/cloudpost/config"
 
@@ -53,10 +54,19 @@ func container_create_app(flock *config.Flock, f *config.Container, port int, en
 		}
 
 		sourceMap["<dockerfile>"] = dfPath
+		
+		// This will ignore COPY commands that are templated
+		templatePattern := `\$\{[^}]*\}`
+		templatePatternRegex := regexp.MustCompile(templatePattern)
 
 		for _, line := range strings.Split(string(data), "\n") {
+			if templatePatternRegex.MatchString(line) {
+				continue
+			}
+			
 			lineSplit := strings.Fields(line)
-			if len(lineSplit) > 0 && lineSplit[0] == "COPY" {
+			
+			if len(lineSplit) > 0 && lineSplit[0] == "COPY" {		
 				err = _copyFiles(filepath.Join(flock.Root, lineSplit[1]), lineSplit[2], td, sourceMap)
 				if err != nil {
 					return err
